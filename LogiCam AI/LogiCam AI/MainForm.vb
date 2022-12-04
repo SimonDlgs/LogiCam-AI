@@ -14,7 +14,6 @@ Public Class MainForm
     Private ReadOnly Path As String = My.Application.Info.DirectoryPath & "\img.jpg"
     Private ReadOnly localExePath As String = My.Application.Info.DirectoryPath & "\Resources\"
 
-
     Private Sub MainUI_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         GlobalRefresh.Start()
         Me.CameraView.SizeMode = PictureBoxSizeMode.Zoom
@@ -67,10 +66,11 @@ Public Class MainForm
             Dim imageBytes = My.Computer.FileSystem.ReadAllBytes(Path)
 
             Me.InfosTextbox.InvokeIfRequired(Sub() InfosTextbox.Text =
-                "Frames: " & Camera.FramesReceived.ToString() &
-                "Frames (Max): " & Camera.VideoResolution.MaximumFrameRate.ToString() &
-                "Bytes received: " & Camera.BytesReceived.ToString() &
-                "Frame size: " & Camera.VideoResolution.FrameSize.ToString())
+                "Frames: " & Camera.FramesReceived.ToString() & vbCrLf &
+                "Frames (Max): " & Camera.VideoResolution.MaximumFrameRate.ToString() & vbCrLf &
+                "Bytes received: " & Camera.BytesReceived.ToString() & vbCrLf &
+                "Frame size: " & Camera.VideoResolution.FrameSize.ToString().Replace("{Width=", Nothing).Replace("Height=", Nothing).Replace("}", Nothing).Replace(", ", "x") & vbCrLf &
+                "" & "")
 
             Dim SampleData As New Consumption.ModelInput() With {
                         .ImageSource = imageBytes
@@ -104,6 +104,7 @@ Public Class MainForm
     Private Sub GlobalRefresh_Tick(sender As Object, e As EventArgs) Handles GlobalRefresh.Tick
         Try
             If Camera IsNot Nothing Then
+                CrossbarSettingsButton.Visible = Camera.CheckIfCrossbarAvailable
                 If Camera.IsRunning = True Then
                     Me.CamStatutLabel.Text = "Online"
                     Me.CamStatutLabel.ForeColor = Color.Green
@@ -125,5 +126,13 @@ Public Class MainForm
         Me.CamStatutLabel.Text = "Offline"
         Me.CamStatutLabel.ForeColor = Color.IndianRed
         File.Delete(Path)
+    End Sub
+
+    Private Sub SettingsButton_Click(sender As Object, e As EventArgs) Handles SettingsButton.Click
+        If Camera IsNot Nothing Then Camera.DisplayPropertyPage(0)
+    End Sub
+
+    Private Sub CrossbarSettingsButton_Click(sender As Object, e As EventArgs) Handles CrossbarSettingsButton.Click
+        Camera.DisplayCrossbarPropertyPage(0)
     End Sub
 End Class
